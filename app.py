@@ -27,12 +27,15 @@ def load_data():
         'home_ownership', 'inq_last_6mths', 'pub_rec',
         'delinq_2yrs', 'int_rate', 'grade', 'loan_status'
     ]
-    df = pd.read_csv(
-        'data/accepted_2007_to_2018Q4.csv',
-        usecols=COLS,
-        nrows=50000,
-        low_memory=False
-    )
+    # Use full dataset locally, sample on cloud
+    path = 'data/accepted_2007_to_2018Q4.csv'
+    sample_path = 'data/sample_accepted.csv'
+    
+    if os.path.exists(path):
+        df = pd.read_csv(path, usecols=COLS, nrows=50000, low_memory=False)
+    else:
+        df = pd.read_csv(sample_path, low_memory=False)
+    
     df = df[df['loan_status'].isin(['Fully Paid', 'Charged Off'])]
     df['default'] = (df['loan_status'] == 'Charged Off').astype(int)
     df = df.dropna(subset=['dti'])
@@ -41,8 +44,14 @@ def load_data():
 @st.cache_data
 def load_rejected_data():
     from src.engine import load_rejected
-    return load_rejected('data/rejected_2007_to_2018Q4.csv', nrows=50000)
-
+    path = 'data/rejected_2007_to_2018Q4.csv'
+    sample_path = 'data/sample_rejected.csv'
+    
+    if os.path.exists(path):
+        return load_rejected(path, nrows=50000)
+    else:
+        return load_rejected(sample_path, nrows=5000)
+    
 
 df = load_data()
 
